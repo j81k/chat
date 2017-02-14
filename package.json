@@ -1,0 +1,9 @@
+{
+    "name"          : "simplechat",
+    "Version"       : "0.0.1",
+    "description"   : "This App is used to chat with one or more people at a time, over the network",
+    "dependencies"  : {
+        "socket.io" : "~1.4.5",
+        "mime"      : "~1.2.7"
+    }
+}
