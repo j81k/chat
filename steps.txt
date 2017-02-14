@@ -1,4 +1,29 @@
+
 > mkdir chat
 > cd chat
-> git init
-> 
+[OR]
+> git clone https://github.com/j81k/chat
+
+
+> git init // Create a new Repo
+> git add . // Add all the changed/new files to repo.
+> git commit -m "My Commit desc" // Commit
+
+> git pull origin master // Update/Download from Git Repo.
+> git push origin master // Push to Git Repo. of the committed things
+
+> git remote -v // List all the current Remote Repo. URL is added.
+
+[Heroku Repo]
+> git branch heroku
+> heroku create myApp
+> heroku git:remote -a myApp
+> git push heroku master
+
+> heroku logs // Check for logs
+
+
+[Branch]
+> git branch --list
+> git branch New_Branch // Create new branch (Default: master/origin)
+> git checkout New_Branch // Switch to New Branch
