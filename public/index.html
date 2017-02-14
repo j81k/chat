@@ -1,29 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Simple Chat App</title>
+        <title>Simple App</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="css/font-awesome.min.css" />
         <link rel="stylesheet" href="css/style.css" />
+        <style type="text/css">
+            ._bg {
+                background: rgba(15, 157, 88, 1) !important;
+                color: #fff;
+            }
+
+            ._bc {
+                border-color: rgba(15, 157, 88, 1) !important;
+            }
+        </style>
     </head>
     <body>
-        <div id='content'>
-            <div id='room'></div>
-            <div id='room-list'></div>
-            <div id='messages'></div>
-            <form id='send-form'>
-                <input id='send-message' />
-                <input id='send-button' type='submit' value='Send'/>
-                <div id='help'>
-                    Chat commands:
-                    <ul>
-                        <li>Change nickname: <code>/nick [username]</code></li>
-                        <li>Join/create room: <code>/join [room name]</code></li>
-                    </ul>
+        <div class="overlay"></div>
+        <section id="page">
+            <header class="_bg">
+                <div>
+                    <div id="logo">Chat <span id="total-users-cnt"></sapn></div>
+                    <div class="ctrls"><i class="fa fa-bars" id="menu-btn"></i></div>
                 </div>
+                
+                <div>
+                    
+                </div>    
+            </header>
+            
+            <section id="content">
+                <div id="plot">
+                    List
+                </div>
+                
+                
+                <div id="chat">
+                    <div id="logs">
+                        Logs
+                    </div>
+                    <div id="chat-form">
+                        <form>
+                            <div id="send-wrap">
+                                <textarea name="" id="msg" rows="2" placeholder="hello ..."></textarea>
+                                <button type="submit" class="btn _bg">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="">
+                
+            </footer>
+        </section>
+        
+        <div id="login-form" class="popup">
+            <form>
+                <input type="text" id="user-name" class="inp" placeholder="User name" value="Jai" autofocus />
+                <button type="submit" class="btn _bg">Login</button>
             </form>
         </div>
-        
         
         <script type="text/javascript" src="js/socket.io-1.4.5.js" ></script>
         <script type="text/javascript" src="js/jquery-1.11.1.min.js" ></script>

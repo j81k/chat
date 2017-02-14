@@ -11,7 +11,7 @@ var port    = process.env.PORT || 5000
 ,   mime    = require('mime')
 ,   cache   = {};
 
-var isCache = false;
+var useCache = false;
 
 /*var server  = http.createServer();
 server.on('request', function(request, response){
@@ -65,7 +65,7 @@ function sendFile(response, filePath, fileContents) {
  * Caching ...
  */
 function serveFile(response, absPath){
-    if( cache[absPath] && isCache ) {
+    if( cache[absPath] && useCache ) {
         // Exists
         sendFile(response, absPath, cache[absPath]);
     }else { 
@@ -101,6 +101,7 @@ stream.on('data', function(chunk){
 
 
 // Start
-var chatServer = require('./lib/chat_server');
+var chatServer = require('./lib/chat.js');
 chatServer.listen(server);
+
 
