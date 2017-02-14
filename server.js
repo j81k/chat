@@ -4,7 +4,7 @@
  * Created On   : 2017-02-13 14:33
  */
 
-var port    = 5000
+var port    = process.env.PORT || 5000
 ,   http    = require('http')
 ,   fs      = require('fs')
 ,   path    = require('path')
