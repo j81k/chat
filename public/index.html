@@ -21,14 +21,16 @@
         <div class="overlay"></div>
         <section id="page">
             <header class="_bg">
-                <div>
-                    <div id="logo">Chat <span id="total-users-cnt"></sapn></div>
-                    <div class="ctrls"><i class="fa fa-bars" id="menu-btn"></i></div>
+                <div id="plot-bar" class="title-bar">
+                    <div class="logo"><span class="app-title">Chat</span> <span id="total-users-cnt"></span></div>
+                    <div class="ctrls"><i class="fa fa-bars ctrl-btn" ></i></div>
                 </div>
                 
-                <div>
-                    
-                </div>    
+                <div id="chat-bar" class="title-bar">
+                    <div class="logo"><span class="app-title"></span></div>
+                    <div class="ctrls"><i class="fa fa-times ctrl-btn" ></i></div>
+                </div>
+                
             </header>
             
             <section id="content">
@@ -44,7 +46,7 @@
                     <div id="chat-form">
                         <form>
                             <div id="send-wrap">
-                                <textarea name="" id="msg" rows="2" placeholder="hello ..."></textarea>
+                                <textarea name="" id="msg" rows="2" placeholder="hello ...">hello ...</textarea>
                                 <button type="submit" class="btn _bg">Submit</button>
                             </div>
                         </form>

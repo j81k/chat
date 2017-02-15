@@ -17,12 +17,12 @@ header > div {
     font-weight: bold;
 }
 
-header > div:first-child {
+header .title-bar {
     padding: 10px;
     font-size: 24px;
 }
 
-header #logo {
+header .logo {
     display: inline-block;
     width: 47%;
     letter-spacing: 1px;
@@ -103,6 +103,12 @@ footer {
     background: #fff;
     overflow: scroll;
 }
+
+#chat-bar {
+    display: none;
+}
+
+
 
 #plot {
     

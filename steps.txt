@@ -29,3 +29,6 @@
 > git checkout New_Branch // Switch to New Branch
 
 Jai@Ref_User-14.Ref
+
+> npm install node-mysql --save
+> npm install express --save
