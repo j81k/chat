@@ -31,17 +31,23 @@
                     <div class="ctrls"><i class="fa fa-times ctrl-btn" ></i></div>
                 </div>
                 
+                <div id="sett-bar" class="title-bar">
+                    <div class="logo"><span class="app-title"></span></div>
+                    <div class="ctrls"><i class="fa fa-times ctrl-btn" ></i></div>
+                </div>
+                
             </header>
             
             <section id="content">
-                <div id="plot">
+                <div id="plot" class="block">
                     List
                 </div>
                 
                 
-                <div id="chat">
-                    <div id="logs">
-                        Logs
+                <div id="chat" class="block">
+                    <div id="chat-logs">
+                        <ul style="padding: 0px;">
+                        </ul>
                     </div>
                     <div id="chat-form">
                         <form>
@@ -52,12 +58,26 @@
                         </form>
                     </div>
                 </div>
+                
+                <div id="settings" class="block">
+                    Your Name: <span id="name"></span>
+                </div>
             </section>
 
-            <footer class="">
+            <footer id="logs" class="">
                 
             </footer>
         </section>
+        
+        
+        <div id="reg-form" class="popup">
+            <form>
+                <input type="text" id="user-name" class="inp" placeholder="User name" value="Jai" autofocus />
+                <input type="email" id="email" class="inp" placeholder="Email (Optional)" value=""/>
+                <input type="text" id="contact-no" class="inp" placeholder="Contact No (Optional)" value=""/>
+                <button type="submit" class="btn _bg">Register</button>
+            </form>
+        </div>
         
         <div id="login-form" class="popup">
             <form>
@@ -65,7 +85,7 @@
                 <button type="submit" class="btn _bg">Login</button>
             </form>
         </div>
-        
+       
         <script type="text/javascript" src="js/socket.io-1.4.5.js" ></script>
         <script type="text/javascript" src="js/jquery-1.11.1.min.js" ></script>
         <script type="text/javascript" src="js/script.js" ></script>

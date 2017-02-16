@@ -32,3 +32,4 @@ Jai@Ref_User-14.Ref
 
 > npm install node-mysql --save
 > npm install express --save
+> npm install mysql --save

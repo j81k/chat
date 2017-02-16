@@ -98,16 +98,36 @@ footer {
     font-size: 15px;
 }
 
-#content {
-    border: 1px solid;
-    background: #fff;
-    overflow: scroll;
+.no-results {
+    text-align: center;
+    padding: 50px 0px;
+    color: #999;
 }
 
-#chat-bar {
+.block:not(#plot) {
     display: none;
 }
 
+.title-bar:not(#plot-bar) {
+    display: none;
+}
+
+
+#logs {
+    max-height: 40px;
+    border: 1px solid #999;
+    background: #fff;
+    box-shadow: -1px -1px 3px #999;
+    font-size: small;
+    padding: 5px 10px;
+    overflow-y: scroll;
+}
+
+#content {
+    border: 1px solid;
+    background: #fff;
+    overflow-y: scroll;
+}
 
 
 #plot {
@@ -121,7 +141,7 @@ footer {
     border-bottom: 1px dotted #999;
 }
 
-#plot .cell:nth-child(even) {
+#plot .cell:nth-child(even), #chat .chat-line:nth-child(even):not(.out) {
   background: rgba(120, 120, 120, 0.02);  
 }
 
@@ -131,20 +151,34 @@ footer {
 
 #plot .cell > div {
     display: inline-block;
+    min-height: 50px;
 }
 
 #plot .cell > div:first-child {
     min-width: 120px;
     text-align: center;
-    min-height: 50px;
 }
 
 #plot .cell > div:nth-child(2) {
     font-weight: bold;
     letter-spacing: 1px;
+}
+
+#plot .cell .name {
     font-size: 18px;
+    color: #666;
     font-family: monospace;
+}
+
+#plot .cell .new-msg {
+    font-size: 14px;
     color: #999;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+#plot .cell .new-msg.active {
+    color: rgba(15, 157, 88, 1);
 }
 
 #plot .cell .user-img {
@@ -157,9 +191,45 @@ footer {
 
 }
 
-#chat {
-    display: none;
-    background: rgba(120, 120, 120, 0.07);
+#chat-logs {
+    overflow-y: scroll;
+}
+
+#chat-logs .chat-line {
+    margin: 0px 10px;
+    padding: 0px 15px;
+}
+
+#chat-logs .chat-msg p {
+    display: inline-block;
+    padding: 10px;
+    border-radius: 5px;
+    min-width: 100px;
+    word-wrap: break-word;
+}
+
+#chat-logs .chat-msg p .cht{
+    padding: 10px;
+    border-radius: 15px;
+    
+     -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+#chat-logs .chat-msg p .status {
+    font-size: 12px;
+    float:right;
+    color: #999;
+    margin-top: 15px;
+}
+
+#chat-logs .chat-line.out{
+    text-align: right;
+}
+
+#chat-logs .chat-line.out p{
+    border: 1px solid #eee;
+    background: rgba(120, 120, 120, 0.02);  
 }
 
 #chat-form {
@@ -169,6 +239,7 @@ footer {
     width: 100%;
     padding: 10px;
     margin: 0 auto;
+    background: #fff;
 }
 
 #send-wrap {
@@ -205,3 +276,4 @@ footer {
 #total-users-cnt {
     font-size: large;
 }
+
