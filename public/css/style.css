@@ -38,9 +38,23 @@ header .ctrls {
     text-align: right;
 }
 
-header .ctrls .fa {
+header .ctrls > i {
     cursor: pointer;
     margin: 0px 10px;
+}
+
+header .ctrls .tip {
+    position: absolute;
+    color: #fff;
+    background: #f33;
+    margin-top: -10px;
+    font-size: 12px;
+    padding: 5px;
+    border-radius: 20px;
+    min-width: 15px;
+    text-align: center;
+    margin-left: 10px;
+    font-style: initial;
 }
 
 footer {
@@ -157,6 +171,9 @@ a.btn:hover {
     overflow-y: scroll;
 }
 
+.notif {
+    /* display: none; */
+}
 
 .plot {
     text-align: left;

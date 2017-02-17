@@ -234,6 +234,14 @@ $(document).on('ready', function(){
                     currentUser = result.data.currentUser;
                     dialog($('#'+ type +'-dialog'), true);
                     
+                    if( result.data.invitedIds ) {
+                        // Notify
+                        $('.notif-invitation').fadeIn(400, function(){
+                            var s = result.data.invitedIds.split(',');
+                            $(this).find('.cnt').html(s.length);
+                        });
+                    }
+                    
                     // Get users list, for the current user
                     socket.emit('get', {
                         type: 'users',
@@ -259,43 +267,60 @@ $(document).on('ready', function(){
     socket.on('get', function(result){
         if( result.status ) {
             var html = ''
-            ,   data = result.data;
-            
+            ,   data = result.data
+            ,   act   = typeof data.act == 'undefined' ? 'list' : data.act;  
+                        
             switch( data.type ) {
             
                 case 'users' :
-                    /*
-                     * List Contacts
-                     */
-                    var res   = data.res
-                    ,   act   = typeof data.act == 'undefined' ? 'list' : data.act  
-                    ,   $plot = $('#user-'+ act +'-plot');
                     
-                    if( res.length > 0 ) {
-                        for(var i in res) {
-                            var row = res[i];
-                            html += '<div class="cell _bc" id="user-'+ act +'-plot-'+ row['id'] +'" data-group="'+ row['group_id'] +'">';
-                            html +=     '<div><i class="fa fa-user user-img _bg"></i></div>';
-                            html +=     '<div>';
-                            html +=         '<div class="name">'+ row['user_name'] +'</div>';
-                            html +=         '<div class="new-msg"></div>';
-                            html +=     '</div>';
-                            html += '</div>';
-                        }
+                    if( act == 'invite' ) {
+                        $('#user-add-dialog .cell.active').fadeOut('slow', function(){
+                            $(this).remove();
+                            alert(result.msg);
+                            dialog( $('#user-add-dialog'), true );
+                            
+                            // Update Main page List
+                            socket.emit('get', {
+                                type: 'users',
+                                user: currentUser,
+                            });
+                        });
                         
-                        if( act == 'add' ) {
-                            html += '<div>';
-                            html +=     '<button id="user-add-btn" class="btn _bg">Add</button>';
-                            html += '</div>';
+                    }else {
+                    
+                        /*
+                         * List Contacts
+                         */
+                        var res   = data.res
+                        ,   $plot = $('#user-'+ act +'-plot');
+
+                        if( res.length > 0 ) {
+                            for(var i in res) {
+                                var row = res[i];
+                                html += '<div class="cell _bc" id="user-'+ act +'-plot-'+ row['id'] +'" data-group="'+ row['group_id'] +'">';
+                                html +=     '<div><i class="fa fa-user user-img _bg"></i></div>';
+                                html +=     '<div>';
+                                html +=         '<div class="name">'+ row['user_name'] +'</div>';
+                                html +=         '<div class="new-msg"></div>';
+                                html +=     '</div>';
+                                html += '</div>';
+                            }
+
+                            if( act == 'add' ) {
+                                html += '<div>';
+                                html +=     '<button id="user-invite-btn" class="btn _bg">Invite</button>';
+                                html += '</div>';
+                            }
+
+                            $('#total-user-'+ act +'-cnt').html('('+ res.length +')');
+                        }else {
+                            html += '<div class="no-results">' + result.msg + '</div>';
+                            $('#total-user-'+ act +'-cnt').html('');
                         }
 
-                        $('#total-user-'+ act +'-cnt').html('('+ res.length +')');
-                    }else {
-                        html += '<div class="no-results">No More Contact(s) found!</div>';
-                        $('#total-user-'+ act +'-cnt').html('');
+                        $plot.html(html);
                     }
-
-                    $plot.html(html);
                     
                break;
                
@@ -328,20 +353,22 @@ $(document).on('ready', function(){
         
     });
     
-    $('#user-add-btn').on('click', function(){
+    $(document).on('click', '#user-invite-btn', function(){
         var ids = '';
         $('#user-add-plot .cell.active').each(function(){
             var id = $(this).attr('id') || "";
             if( id != '' ) {
                 var s = id.split('-');
-                ids += s[4] + ',';
+                ids += s[3] + ',';
             }
         });
         
         ids = ids.slice(0, ids.length-1);
         
-        socket.emit('users', {
-            act : 'append',
+        socket.emit('get', {
+            type: 'users',
+            act : 'invite',
+            user: currentUser,    
             ids : ids
         });
         
