@@ -22,7 +22,7 @@
         <section id="page">
             <header class="_bg">
                 <div id="plot-bar" class="title-bar">
-                    <div class="logo"><span class="app-title">Chat</span> <span id="total-users-cnt"></span></div>
+                    <div class="logo"><span class="app-title">Chat</span> <span id="total-user-list-cnt"></span></div>
                     <div class="ctrls"><i class="fa fa-bars ctrl-btn" ></i></div>
                 </div>
                 
@@ -32,15 +32,18 @@
                 </div>
                 
                 <div id="sett-bar" class="title-bar">
-                    <div class="logo"><span class="app-title"></span></div>
-                    <div class="ctrls"><i class="fa fa-times ctrl-btn" ></i></div>
+                    <div class="logo"><span class="app-title">Settings</span></div>
+                    <div class="ctrls">
+                        <i class="fa fa-user-plus add-user-btn"></i>
+                        <i class="fa fa-times ctrl-btn" ></i>
+                    </div>
                 </div>
                 
             </header>
             
             <section id="content">
-                <div id="plot" class="block">
-                    List
+                <div id="user-list-plot" class="block plot">
+                    
                 </div>
                 
                 
@@ -70,20 +73,36 @@
         </section>
         
         
-        <div id="reg-form" class="popup">
+        <div id="reg-dialog" class="popup">
             <form>
-                <input type="text" id="user-name" class="inp" placeholder="User name" value="Jai" autofocus />
-                <input type="email" id="email" class="inp" placeholder="Email (Optional)" value=""/>
-                <input type="text" id="contact-no" class="inp" placeholder="Contact No (Optional)" value=""/>
-                <button type="submit" class="btn _bg">Register</button>
+                <input type="text" class="inp username" placeholder="User name" value="Jai" autofocus />
+                <input type="password" class="inp password" placeholder="Password" value="" />
+                <input type="email" class="inp email" placeholder="Email (Optional)" value=""/>
+                <input type="text" class="inp contact-no" placeholder="Contact No (Optional)" value=""/>
+                <div>
+                    <a href="#" class="btn col-2 login-btn">Login</a>
+                    <button type="submit" class="btn _bg col-2">Register</button>
+                </div>
             </form>
         </div>
         
-        <div id="login-form" class="popup">
+        <div id="login-dialog" class="popup">
             <form>
-                <input type="text" id="user-name" class="inp" placeholder="User name" value="Jai" autofocus />
-                <button type="submit" class="btn _bg">Login</button>
+                <input type="text" class="inp username" placeholder="User name" value="Jai" autofocus />
+                <div>
+                    <a href="#" class="btn col-2 login-btn">Register</a>
+                    <button type="submit" class="btn _bg col-2">Login</button>
+                </div>
             </form>
+        </div>
+        
+        <div id="user-add-dialog" class="popup">
+            <div class="hdr _bg">
+                <span>Add Members </span>
+                <span id="total-user-add-cnt"></span>
+            </div>
+            
+            <div id="user-add-plot" class="plot"></div>
         </div>
        
         <script type="text/javascript" src="js/socket.io-1.4.5.js" ></script>

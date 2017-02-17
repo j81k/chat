@@ -4,6 +4,10 @@ body{
     overflow: hidden;
 }
 
+a {
+    text-decoration: none;
+}
+
 input, select, textarea, button {
     width: 100%;
     margin: 10px 0px;
@@ -36,6 +40,7 @@ header .ctrls {
 
 header .ctrls .fa {
     cursor: pointer;
+    margin: 0px 10px;
 }
 
 footer {
@@ -53,6 +58,7 @@ footer {
     width: 100%;
     height: 100%;
     z-index: 4444;
+    display: none;
 }
 
 .popup {
@@ -64,6 +70,8 @@ footer {
     width: 60%;
     padding: 20px;
     text-align: center;
+    
+    display: none;
 }
 
 
@@ -98,18 +106,38 @@ footer {
     font-size: 15px;
 }
 
+a.btn {
+    box-shadow: none;
+    color: #999;
+    letter-spacing: 3px;
+    
+}
+
+a.btn:hover {
+    text-decoration: underline;
+}
+
 .no-results {
     text-align: center;
     padding: 50px 0px;
     color: #999;
 }
 
-.block:not(#plot) {
+.block:not(#user-list-plot) {
     display: none;
 }
 
 .title-bar:not(#plot-bar) {
     display: none;
+}
+
+.hdr {
+    padding: 10px;
+}
+
+.col-2 {
+    width: 48%;
+    display: inline-block;
 }
 
 
@@ -130,58 +158,58 @@ footer {
 }
 
 
-#plot {
-    
+.plot {
+    text-align: left;
 }
 
-#plot .cell {
+.plot .cell {
     margin: 5px;
     padding: 15px 10px;
     cursor: pointer;
     border-bottom: 1px dotted #999;
 }
 
-#plot .cell:nth-child(even), #chat .chat-line:nth-child(even):not(.out) {
+.plot .cell:nth-child(even), #chat .chat-line:nth-child(even):not(.out) {
   background: rgba(120, 120, 120, 0.02);  
 }
 
-#plot .cell:hover > div:nth-child(2) {
+.plot .cell:hover > div:nth-child(2) {
     opacity: 0.6;
 }
 
-#plot .cell > div {
+.plot .cell > div {
     display: inline-block;
     min-height: 50px;
 }
 
-#plot .cell > div:first-child {
+.plot .cell > div:first-child {
     min-width: 120px;
     text-align: center;
 }
 
-#plot .cell > div:nth-child(2) {
+.plot .cell > div:nth-child(2) {
     font-weight: bold;
     letter-spacing: 1px;
 }
 
-#plot .cell .name {
+.plot .cell .name {
     font-size: 18px;
     color: #666;
     font-family: monospace;
 }
 
-#plot .cell .new-msg {
+.plot .cell .new-msg {
     font-size: 14px;
     color: #999;
     margin-top: 5px;
     font-style: italic;
 }
 
-#plot .cell .new-msg.active {
+.plot .cell .new-msg.active {
     color: rgba(15, 157, 88, 1);
 }
 
-#plot .cell .user-img {
+.plot .cell .user-img {
     font-size: 28px;
     border: 1px solid;
     padding: 15px 0px;
@@ -189,6 +217,15 @@ footer {
     height: 100%;
     border-radius: 100px;
 
+}
+
+.plot .cell .chk {
+    position: absolute;
+    right: 40px;
+    margin-top: 25px;
+    font-size: 20px;
+    padding: 5px;
+    border-radius: 20px;
 }
 
 #chat-logs {

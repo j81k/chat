@@ -8,6 +8,7 @@ var socket      = io.connect()
 ,   currentUser = {} 
 //,   userId      = localStorage.getItem('userId') || "" 
 ,   init        = function(){
+    
     var H = $(window).height() - ( $('header').height() + $('footer').height() );
     $('#content > div').css({
         'height' : H + 'px',
@@ -20,17 +21,16 @@ var socket      = io.connect()
     });
     
     socket.emit('login', {
-        data : {
-            type: 'check',
-        }
-    })
+        type    : 'check',
+        userId  : getVarName( socket.id )
+    });
     
 }
 
 function chat( type ){
     var type = typeof type == 'undefined' ? 'message' : type;
 
-    var $act = $('#plot .cell.active')
+    var $act = $('#user-list-plot .cell.active')
     ,   name = $act.find('.name').text()
     ,   group= $act.attr('data-group') || "guest";
 
@@ -74,9 +74,9 @@ function swap(type){
             // Show Chat logs
             chat('logs');
             
-            $('#chat-bar .app-title').html($('#plot .cell.active .name').text());
+            $('#chat-bar .app-title').html($('#user-list-plot .cell.active .name').text());
             $('#chat-bar').addClass('active');
-            $('#plot-bar, #plot, #sett-bar, #settings').slideUp(400);
+            $('#plot-bar, #user-list-plot, #sett-bar, #settings').slideUp(400);
             $('#chat-bar, #chat').slideDown(400);
             
         
@@ -86,7 +86,7 @@ function swap(type){
             // Show Plot
             $('#plot-bar').addClass('active');
             $('#chat-bar, #chat, #sett-bar, #settings').slideUp(400);
-            $('#plot-bar, #plot').slideDown(400);
+            $('#plot-bar, #user-list-plot').slideDown(400);
             
         
         break;
@@ -94,7 +94,7 @@ function swap(type){
         case 'settings' :
             // Show Settings
             $('#sett-bar').addClass('active');
-            $('#chat-bar, #chat, #plot-bar, #plot').slideUp(400);
+            $('#chat-bar, #chat, #plot-bar, #user-list-plot').slideUp(400);
             $('#sett-bar, #settings').slideDown(400);
         break;
         
@@ -156,12 +156,15 @@ function getDayName(dayNo){
 function scrollTo($this) {
     if( typeof $this != 'undefined' ) {
         var o = $this.offset();
-        console.log('Scrolling ..' + o.top);
         $('body, html').animate({
             scrollTop: o.top
         }, 1000);
     }
     
+}
+
+function getVarName(str) {
+    return str ? str.toString().replace(/[^\w\s]/gi, '').replace(' ', '_').toLowerCase() : '';
 }
 
 
@@ -207,24 +210,30 @@ $(document).on('ready', function(){
     })
     
     socket.on('login', function(result){
-        
-        switch( result.data.type ) {
+        var type = result.data.type;
+        switch( type ) {
             case 'check' :
                 
                 if( !result.status ) {
                     // Show Login
-                    dialog($('#login-form'));
+                    dialog($('#login-dialog'));
+                }else {
+                    socket.emit('get', {
+                        type: 'users',
+                        user: currentUser,
+                    });
                 }
                 
             break;  
             
+            case 'login' :
             case 'reg' :
                 
                 if( result.status ) {
                     // Logged In
                     currentUser = result.data.currentUser;
-                    dialog($('#login-form'), true);
-
+                    dialog($('#'+ type +'-dialog'), true);
+                    
                     // Get users list, for the current user
                     socket.emit('get', {
                         type: 'users',
@@ -258,26 +267,35 @@ $(document).on('ready', function(){
                     /*
                      * List Contacts
                      */
-                    var res = data.res;
+                    var res   = data.res
+                    ,   act   = typeof data.act == 'undefined' ? 'list' : data.act  
+                    ,   $plot = $('#user-'+ act +'-plot');
+                    
                     if( res.length > 0 ) {
                         for(var i in res) {
                             var row = res[i];
-                            html += '<div class="cell _bc" id="list-'+ getVarName( row['id'] ) +'" data-group="'+ row['group'] +'">';
+                            html += '<div class="cell _bc" id="user-'+ act +'-plot-'+ row['id'] +'" data-group="'+ row['group_id'] +'">';
                             html +=     '<div><i class="fa fa-user user-img _bg"></i></div>';
                             html +=     '<div>';
-                            html +=         '<div class="name">'+ row['name'] +'</div>';
+                            html +=         '<div class="name">'+ row['user_name'] +'</div>';
                             html +=         '<div class="new-msg"></div>';
                             html +=     '</div>';
                             html += '</div>';
                         }
+                        
+                        if( act == 'add' ) {
+                            html += '<div>';
+                            html +=     '<button id="user-add-btn" class="btn _bg">Add</button>';
+                            html += '</div>';
+                        }
 
-                        $('#total-users-cnt').html('('+ res.length +')');
+                        $('#total-user-'+ act +'-cnt').html('('+ res.length +')');
                     }else {
                         html += '<div class="no-results">No More Contact(s) found!</div>';
-                        $('#total-users-cnt').html('');
+                        $('#total-user-'+ act +'-cnt').html('');
                     }
 
-                    $('#plot').html(html);
+                    $plot.html(html);
                     
                break;
                
@@ -294,6 +312,48 @@ $(document).on('ready', function(){
     socket.on('log', function(result){
         console.log(result);
         $('footer').append('<div>'+  result.msg +'</div>');
+    });
+    
+    $('.login-btn').on('click', function(){
+        var $dialog = $(this).parent().closest('.popup');
+        
+        $dialog.fadeOut(400);
+        if( $dialog.attr('id') == 'login-dialog' ) {
+            // Show Reg.
+            dialog($('#reg-dialog'));
+        }else {
+            // Show Login.
+            dialog($('#login-dialog'));
+        }
+        
+    });
+    
+    $('#user-add-btn').on('click', function(){
+        var ids = '';
+        $('#user-add-plot .cell.active').each(function(){
+            var id = $(this).attr('id') || "";
+            if( id != '' ) {
+                var s = id.split('-');
+                ids += s[4] + ',';
+            }
+        });
+        
+        ids = ids.slice(0, ids.length-1);
+        
+        socket.emit('users', {
+            act : 'append',
+            ids : ids
+        });
+        
+    });
+    
+    $('.add-user-btn').on('click', function(){
+        dialog( $('#user-add-dialog') );
+        socket.emit('get', {
+            type: 'users',
+            act : 'add',
+            user: currentUser,
+        });
     });
     
     $('.exists').on('click', function(){
@@ -338,12 +398,12 @@ $(document).on('ready', function(){
         return false;
     });
     
-    $(document).on('click', '#plot .cell', function(){
+    $(document).on('click', '#user-list-plot .cell', function(){
         var grp = $(this).attr('data-group') || "";
         
         if( grp != '' ) {
             // Establish connection among this Group
-            $('#plot .cell.active').removeClass('active');
+            $('#user-list-plot .cell.active').removeClass('active');
             $(this).addClass('active');
             $(this).find('.new-msg').removeClass('active');
             swap();
@@ -351,14 +411,25 @@ $(document).on('ready', function(){
         
     });
     
-    $('#login-form form').submit(function(){
-        var username = $('#user-name').val()
-        ,   password   = '';
+    $(document).on('click', '#user-add-plot .cell', function(){
+        if( $(this).hasClass('active') ) {
+            $(this).removeClass('active');
+            $(this).find('.chk').remove();
+        }else {
+            $(this).addClass('active').append('<i class="fa fa-check _bg chk"></i>');
+            
+        }
+    })
+    
+    $('#login-dialog form').submit(function(){
+        var $parent  = $(this).parent().closest('.popup')
+        ,   username = $parent.find('.username').val()
+        ,   password = $parent.find('.password').val();
         
         if( username != '' ) {
-            //var message = chatApp.login(username, 'he');
+            
             socket.emit('login', {
-                type        : 'reg',
+                type        : 'login',
                 username    : username,
                 password    : password
             });
@@ -368,9 +439,32 @@ $(document).on('ready', function(){
         }
         
         return false;
-    })
+    });
+    
+    $('#reg-dialog form').submit(function(){
+        var $parent  = $(this).parent().closest('.popup')
+        ,   username = $parent.find('.username').val()
+        ,   password = $parent.find('.password').val()
+        ,   email    = $parent.find('.email').val()
+        ,   contactNo    = $parent.find('.contact-no').val();
+        
+        if( username != '' ) {
+            
+            socket.emit('login', {
+                type        : 'reg',
+                username    : username,
+                password    : password,
+                email       : email,
+                contactNo   : contactNo
+            });
+            
+        }else {
+            $('#user-name').focus();
+        }
+        
+        return false;
+    });
     
     init();
     
-    //$('#menu-btn').trigger('click');
 });
