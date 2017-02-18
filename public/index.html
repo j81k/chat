@@ -38,7 +38,7 @@
                 </div>
                 
                 <div id="sett-bar" class="title-bar">
-                    <div class="logo"><span class="app-title">Settings</span></div>
+                    <div class="logo"><span class="app-title">Options</span></div>
                     <div class="ctrls">
                         <i class="fa fa-user-plus add-user-btn"></i>
                         <i class="fa fa-times ctrl-btn" ></i>
@@ -103,12 +103,23 @@
         </div>
         
         <div id="user-add-dialog" class="popup">
+            <i class="fa fa-times clse-btn"></i>
             <div class="hdr _bg">
                 <span>Add Members</span>
                 <span id="total-user-add-cnt"></span>
             </div>
             
             <div id="user-add-plot" class="plot"></div>
+        </div>
+        
+        <div id="user-invited-dialog" class="popup">
+            <i class="fa fa-times clse-btn"></i>
+            <div class="hdr _bg">
+                <span>Invited Members</span>
+                <span id="total-user-invited-cnt"></span>
+            </div>
+            
+            <div id="user-invited-plot" class="plot"></div>
         </div>
        
         <script type="text/javascript" src="js/socket.io-1.4.5.js" ></script>

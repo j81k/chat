@@ -27,31 +27,29 @@ var socket      = io.connect()
     
 }
 
-function chat( type ){
-    var type = typeof type == 'undefined' ? 'message' : type;
+function chat( act ){
+    var act = typeof act == 'undefined' ? 'message' : act;
 
     var $act = $('#user-list-plot .cell.active')
     ,   name = $act.find('.name').text()
-    ,   group= $act.attr('data-group') || "guest";
+    ,   groupId= $act.attr('data-group') || 0;
 
-    if( group != '' ) {
-        console.log('[To] Group: ' + group+' | Name: '+ name );
+    if( groupId > 0 ) {
+        //console.log('[To] Group: ' + group+' | Name: '+ name );
         
         var data = {
-            type : type,
+            type : 'chat',
+            act  : act,
             from : currentUser,
             to   : {
-                group : group,
+                groupId : groupId,
                 name  : name  
             }
         };
         
-        if( type == 'message' ) {
+        if( act == 'message' ) {
             data.message = $('#msg').val();
-            
-            /*if( data.message == '' ) {
-                return false;
-            }*/
+            $('#msg').val('');
         }
 
         // Open Chat
@@ -103,11 +101,20 @@ function swap(type){
     }
 }
 
-function showChat(msg, type){
-    var type = typeof type == 'undefined' ? 'in' : type;
+function showChat(msg, type, dat){
+    var d    = new Date()
+    ,   type = typeof type == 'undefined' ? 'in' : type;
     
-    var d     = new Date()
-    ,   H     = d.getHours()  
+    if( typeof dat != 'undefined' ) {
+        //alert(dat);
+        var s  = dat.split('T')
+        ,   s1 = s[0].split('-')
+        ,   s2 = s[1].split(':');
+        
+        d       = new Date(s1[0], s1[1]-1, s1[2], s2[0], s2[1], s2[2].substring(0,2));
+    }
+    
+    var H     = d.getHours()  
     ,   A     = H > 12 ? 'PM' : 'AM'  
     ,   html  = '<li class="chat-line '+ type +'" >';
         html +=     '<div class="chat-msg">';
@@ -184,15 +191,26 @@ $(document).on('ready', function(){
     //var chatApp = new chatApp(socket);
     
     socket.on('chat', function(result){
+        $('footer').append('<div style="color: #1ba;">'+  result.msg +'</div>');
+        var data = result.data;
         
-        $('footer').append('<div style="color: #1ba;">'+  result.msg +'</div>');;
-        if( result.status ) {
-            var data = result.data;
+        switch( data.act ) {
             
-            if( data.type == 'broadcast' ) {
+            case 'logs':
+                /*
+                 * Show Prev. Chat Messages
+                 */
+                var res = data.res;
+                for( var i in res ) {
+                    showChat(res[i]['msg'], res[i]['msg_from'] == currentUser.id ? 'out' : 'in', res[i]['created_on']);
+                }
+                
+            break;
+            
+            case 'message':
                 // Show the broadcast Message
                 
-                var $newMsg = $('#list-'+getVarName( data.user.id ) + ' .new-msg');
+                var $newMsg = $('#user-list-plot-'+ data.from.id + ' .new-msg');
                 if( $newMsg.is(':visible') ) {
                     // Not in Chat window
                     $newMsg.addClass('active');
@@ -201,11 +219,11 @@ $(document).on('ready', function(){
                 
                 $newMsg.html(data.message.slice(0,20));
                 showChat(data.message);
-            }
+                
+            break;    
             
-        }else {
-            alert("Error: "+result.msg);
         }
+        
         
     })
     
@@ -238,7 +256,7 @@ $(document).on('ready', function(){
                         // Notify
                         $('.notif-invitation').fadeIn(400, function(){
                             var s = result.data.invitedIds.split(',');
-                            $(this).find('.cnt').html(s.length);
+                            $(this).find('.tip').html(s.length);
                         });
                     }
                     
@@ -274,7 +292,37 @@ $(document).on('ready', function(){
             
                 case 'users' :
                     
-                    if( act == 'invite' ) {
+                    if( act == 'accepted' ) {
+                        $('#user-invited-dialog .cell.active').fadeOut('slow', function(){
+                            $(this).remove();
+                            alert(result.msg);
+                            dialog( $('#user-invited-dialog'), true );
+                            
+                            /*
+                             * Update Invited List Count
+                             */
+                            var invitedIds = data.invitedIds || "";
+                            if( invitedIds != '' ) {
+                               // Notify
+                               $('.notif-invitation').fadeIn(400, function(){
+                                   var s = result.data.invitedIds.split(',');
+                                   $(this).find('.tip').html(s.length);
+                               });
+                            }else {
+                               // No More Invitation
+                               $('.notif-invitation').fadeOut(400, function(){
+                                   $(this).find('.tip').html('');
+                               });
+                            }
+                            
+                            // Update Main page List
+                            socket.emit('get', {
+                                type: 'users',
+                                user: currentUser,
+                            });
+                        });
+                        
+                    }else if( act == 'invite' ) {
                         $('#user-add-dialog .cell.active').fadeOut('slow', function(){
                             $(this).remove();
                             alert(result.msg);
@@ -307,9 +355,9 @@ $(document).on('ready', function(){
                                 html += '</div>';
                             }
 
-                            if( act == 'add' ) {
+                            if( act != 'list' ) {
                                 html += '<div>';
-                                html +=     '<button id="user-invite-btn" class="btn _bg">Invite</button>';
+                                html +=     '<button class="btn _bg user-mingle-btn" data-act="'+ act +'" >'+ ( act == 'add' ? 'Invite' : 'Accept' ) +'</button>';
                                 html += '</div>';
                             }
 
@@ -320,6 +368,7 @@ $(document).on('ready', function(){
                         }
 
                         $plot.html(html);
+                        
                     }
                     
                break;
@@ -339,6 +388,24 @@ $(document).on('ready', function(){
         $('footer').append('<div>'+  result.msg +'</div>');
     });
     
+    $('.notif-invitation').on('click', function(){
+        dialog( $('#user-invited-dialog') );
+        
+        /*
+         * Get Invited Members list
+         */
+        socket.emit('get', {
+            type: 'users',
+            act : 'invited',
+            user: currentUser,
+        });
+    });
+    
+    $('.popup .clse-btn').on('click', function(){
+        var $dialog = $(this).parent().closest('.popup');
+        dialog($dialog, true);
+    });
+    
     $('.login-btn').on('click', function(){
         var $dialog = $(this).parent().closest('.popup');
         
@@ -353,9 +420,11 @@ $(document).on('ready', function(){
         
     });
     
-    $(document).on('click', '#user-invite-btn', function(){
-        var ids = '';
-        $('#user-add-plot .cell.active').each(function(){
+    $(document).on('click', '.user-mingle-btn', function(){
+        var ids = ''
+        ,   act = $(this).attr('data-act') || 'add';
+        
+        $('#user-'+ act +'-plot .cell.active').each(function(){
             var id = $(this).attr('id') || "";
             if( id != '' ) {
                 var s = id.split('-');
@@ -364,10 +433,9 @@ $(document).on('ready', function(){
         });
         
         ids = ids.slice(0, ids.length-1);
-        
         socket.emit('get', {
             type: 'users',
-            act : 'invite',
+            act : act == 'add' ? 'invite' : 'accept',
             user: currentUser,    
             ids : ids
         });
@@ -375,6 +443,7 @@ $(document).on('ready', function(){
     });
     
     $('.add-user-btn').on('click', function(){
+        //$('#user-add-dialog .hdr span:first-child').html('Add Members');
         dialog( $('#user-add-dialog') );
         socket.emit('get', {
             type: 'users',
@@ -425,28 +494,35 @@ $(document).on('ready', function(){
         return false;
     });
     
-    $(document).on('click', '#user-list-plot .cell', function(){
-        var grp = $(this).attr('data-group') || "";
+    $(document).on('click', '.plot .cell', function(){
+        var idd = $(this).attr('id')
+        ,   s   = idd.split('-');
         
-        if( grp != '' ) {
-            // Establish connection among this Group
-            $('#user-list-plot .cell.active').removeClass('active');
-            $(this).addClass('active');
-            $(this).find('.new-msg').removeClass('active');
-            swap();
+        if( s[1] == 'list' ) {
+            // Main List
+            var grp = $(this).attr('data-group') || "";
+            if( grp != '' ) {
+                // Establish connection among this Group
+                $('#user-list-plot .cell.active').removeClass('active');
+                $(this).addClass('active');
+                $(this).find('.new-msg').removeClass('active');
+                swap();
+            }
+        
+        }else{
+            
+            // Add Members || Invited Members
+            if( $(this).hasClass('active') ) {
+                $(this).removeClass('active');
+                $(this).find('.chk').remove();
+            }else {
+                $(this).addClass('active').append('<i class="fa fa-check _bg chk"></i>');
+
+            }
+            
         }
         
     });
-    
-    $(document).on('click', '#user-add-plot .cell', function(){
-        if( $(this).hasClass('active') ) {
-            $(this).removeClass('active');
-            $(this).find('.chk').remove();
-        }else {
-            $(this).addClass('active').append('<i class="fa fa-check _bg chk"></i>');
-            
-        }
-    })
     
     $('#login-dialog form').submit(function(){
         var $parent  = $(this).parent().closest('.popup')
