@@ -5,6 +5,7 @@
  */
 
 var socket      = io.connect()
+,   groupId     = 0
 ,   currentUser = {} 
 //,   userId      = localStorage.getItem('userId') || "" 
 ,   init        = function(){
@@ -32,34 +33,37 @@ function chat( act ){
 
     var $act = $('#user-list-plot .cell.active')
     ,   name = $act.find('.name').text()
-    ,   groupId= $act.attr('data-group') || 0;
-
-    if( groupId > 0 ) {
-        //console.log('[To] Group: ' + group+' | Name: '+ name );
-        
+    ,   toId = $act.attr('data-id') || "";   
+    
+    if( toId != '' ) {
+    
         var data = {
             type : 'chat',
             act  : act,
             from : currentUser,
             to   : {
-                groupId : groupId,
-                name  : name  
+                id   : toId,
+                name : name  
             }
         };
-        
+
         if( act == 'message' ) {
             data.message = $('#msg').val();
             $('#msg').val('');
+        }else if( act == 'logs' ) {
+
+            var grpId = $('#user-list-plot .cell.active').attr('data-group') || "";
+            if( grpId != '' ) {
+                data.groupId = grpId;
+            }
         }
 
         // Open Chat
         socket.emit('chat', data);
-
         return true;
     }
-
+    
     return false;
-
 }
 
 function swap(type){
@@ -76,6 +80,7 @@ function swap(type){
             $('#chat-bar').addClass('active');
             $('#plot-bar, #user-list-plot, #sett-bar, #settings').slideUp(400);
             $('#chat-bar, #chat').slideDown(400);
+            $('#chat-logs ul').html('<div class="no-results">Fetching data ...</div>');
             
         
         break;
@@ -101,13 +106,13 @@ function swap(type){
     }
 }
 
-function showChat(msg, type, dat){
+function showChat(data){ //msg, type, dat){
     var d    = new Date()
-    ,   type = typeof type == 'undefined' ? 'in' : type;
+    ,   type = typeof data.type == 'undefined' ? 'in' : data.type;
     
-    if( typeof dat != 'undefined' ) {
+    if( typeof data.dat != 'undefined' ) {
         //alert(dat);
-        var s  = dat.split('T')
+        var s  = data.dat.split('T')
         ,   s1 = s[0].split('-')
         ,   s2 = s[1].split(':');
         
@@ -118,60 +123,35 @@ function showChat(msg, type, dat){
     ,   A     = H > 12 ? 'PM' : 'AM'  
     ,   html  = '<li class="chat-line '+ type +'" >';
         html +=     '<div class="chat-msg">';
-        html +=         '<p '+ ( type == 'in' ? 'class="_bg"' : '' ) +' ><span class="cht">'+ msg +'</span><br /><span class="status" '+ ( type == 'in' ? 'style="color: #fff;"' : '' ) +'>'+ getDayName( d.getDay() ) +', '+ ( H > 12 ? H-12 : H ) +':'+ d.getMinutes() +':'+ d.getSeconds() + ' ' + A +'</span></p>';
+        html +=         '<p '+ ( type == 'in' ? 'class="_bg"' : '' ) +' ><span class="cht">'+ data.msg +'</span><br /><span class="status" '+ ( type == 'in' ? 'style="color: #fff;"' : '' ) +'>'+ getDayName( d.getDay() ) +', '+ ( H > 12 ? H-12 : H ) +':'+ d.getMinutes() +':'+ d.getSeconds() + ' ' + A +'</span></p>';
         html +=     '</div>';
         html += '</li>';
-            
+    
+    $('#chat-logs ul .no-results').remove();
     $('#chat-logs ul').append(html);
+    
+    
+    if( typeof data.from != 'undefined' ) {
+        
+        var $newMsg = $('#user-list-plot-'+ data.from.id + ' .new-msg');
+        if( $newMsg.is(':visible') ) {
+            // Not in Chat window
+            $newMsg.addClass('active');
+            //scrollTo($newMsg);
+        }
+        
+    }else {
+        // List Page
+        var $newMsg = $('#user-list-plot .cell.active .new-msg');
+    }
+    
+    $newMsg.html((type == 'out' ? 'You: ' : '') + (data.msg.length > 12 ? data.msg.slice(0,12)+' ...' : data.msg));
     
     //scrollTo($('#chat-logs ul li:last-child .chat-msg'));
     $('html, body, #chat-logs').stop().animate({
         scrollTop: $("#chat-logs ul li:last-child .chat-msg").offset().top+$('#chat-logs').height()
     }, 400);
     
-}
-
-function dialog($this, toClose){
-    
-    if( toClose ) {
-        $this.fadeOut('slow', function(){
-            $('.overlay').fadeOut(700);
-        });
-            
-    }else {
-        $('.overlay').fadeIn('slow', function(){
-            $this.fadeIn('slow');
-        });
-    }
-    
-}
-
-function getDayName(dayNo){
-    
-    switch(parseInt(dayNo)) {
-        case 0 : return 'Sun'; break;
-        case 1 : return 'Mon'; break;
-        case 2 : return 'Tue'; break;
-        case 3 : return 'Wed'; break;
-        case 4 : return 'Thu'; break;
-        case 5 : return 'Fri'; break;
-        case 6 : return 'Sat'; break;
-    }
-}
-
-
-function scrollTo($this) {
-    if( typeof $this != 'undefined' ) {
-        var o = $this.offset();
-        $('body, html').animate({
-            scrollTop: o.top
-        }, 1000);
-    }
-    
-}
-
-function getVarName(str) {
-    return str ? str.toString().replace(/[^\w\s]/gi, '').replace(' ', '_').toLowerCase() : '';
 }
 
 
@@ -197,12 +177,26 @@ $(document).on('ready', function(){
         switch( data.act ) {
             
             case 'logs':
+                groupId = data.groupId;
+                
+                $('#user-list-plot .cell.active').attr('data-group', groupId);
+                
                 /*
                  * Show Prev. Chat Messages
                  */
                 var res = data.res;
-                for( var i in res ) {
-                    showChat(res[i]['msg'], res[i]['msg_from'] == currentUser.id ? 'out' : 'in', res[i]['created_on']);
+                if( res.length > 0 ) {
+                    for( var i in res ) {
+                        var obj = {
+                            msg : res[i]['msg'],
+                            type: res[i]['msg_from'] == currentUser.id ? 'out' : 'in',
+                            dat : res[i]['created_on'],
+                        };
+                        
+                        showChat(obj);
+                    }
+                }else {
+                    $('#chat-logs ul').html('<div class="no-results">Let\'s start chat ...</div>');
                 }
                 
             break;
@@ -210,15 +204,11 @@ $(document).on('ready', function(){
             case 'message':
                 // Show the broadcast Message
                 
-                var $newMsg = $('#user-list-plot-'+ data.from.id + ' .new-msg');
-                if( $newMsg.is(':visible') ) {
-                    // Not in Chat window
-                    $newMsg.addClass('active');
-                    //scrollTo($newMsg);
-                }
-                
-                $newMsg.html(data.message.slice(0,20));
-                showChat(data.message);
+                var obj = {
+                    msg : data.message,
+                    from: data.from
+                };
+                showChat(obj);
                 
             break;    
             
@@ -249,7 +239,10 @@ $(document).on('ready', function(){
                 
                 if( result.status ) {
                     // Logged In
+                    var options = JSON.parse(result.data.options) || {};
                     currentUser = result.data.currentUser;
+                    $('#user-theme .cell[data-color="'+ options.themeClr +'"]').trigger('click');
+                    
                     dialog($('#'+ type +'-dialog'), true);
                     
                     if( result.data.invitedIds ) {
@@ -259,6 +252,8 @@ $(document).on('ready', function(){
                             $(this).find('.tip').html(s.length);
                         });
                     }
+                    
+                    $('#user-info .user-name h1').html(currentUser.name);
                     
                     // Get users list, for the current user
                     socket.emit('get', {
@@ -346,7 +341,7 @@ $(document).on('ready', function(){
                         if( res.length > 0 ) {
                             for(var i in res) {
                                 var row = res[i];
-                                html += '<div class="cell _bc" id="user-'+ act +'-plot-'+ row['id'] +'" data-group="'+ row['group_id'] +'">';
+                                html += '<div class="cell _bc" id="user-'+ act +'-plot-'+ row['id'] +'" data-id="'+ row['id'] +'" >';
                                 html +=     '<div><i class="fa fa-user user-img _bg"></i></div>';
                                 html +=     '<div>';
                                 html +=         '<div class="name">'+ row['user_name'] +'</div>';
@@ -486,8 +481,12 @@ $(document).on('ready', function(){
         var msg = $('#msg').val();
         
         if( msg != '' ) {
-            showChat(msg, 'out');
-
+            var obj = {
+                msg : msg,
+                type: 'out'
+            };
+            showChat(obj);
+            
             // Broadcast Chat
             chat();
         }
@@ -500,14 +499,12 @@ $(document).on('ready', function(){
         
         if( s[1] == 'list' ) {
             // Main List
-            var grp = $(this).attr('data-group') || "";
-            if( grp != '' ) {
-                // Establish connection among this Group
-                $('#user-list-plot .cell.active').removeClass('active');
-                $(this).addClass('active');
-                $(this).find('.new-msg').removeClass('active');
-                swap();
-            }
+            
+            // Establish connection among this Group
+            $('#user-list-plot .cell.active').removeClass('active');
+            $(this).addClass('active');
+            $(this).find('.new-msg').removeClass('active');
+            swap();
         
         }else{
             
@@ -568,6 +565,102 @@ $(document).on('ready', function(){
         return false;
     });
     
+    var themes = new Array(
+            '15, 157, 88, 1', // Green
+            '244, 67, 54, 1', // Red
+            '233, 30, 99, 1', // Red (1)
+            '156, 39, 176, 1', // Violete
+            '103, 58, 183, 1', // Purple
+            '63, 81, 181, 1', //  Purple (Dark)   
+            '33, 150, 243, 1', // Blue (Light)
+            '3, 169, 244, 1', // Blue (2)      
+            '0, 188, 212, 1', // Blue Green
+            '0, 150, 136, 1', // Green (Dark)       
+            '76, 175, 80, 1', // Light Green
+            '139, 195, 74, 1', // Light Green (1)        
+            '205, 220, 57, 1', // Yellowish Green
+            '255, 235, 59, 1', // Yellow
+            '255, 193, 7, 1', // Orange
+            '255, 152, 0, 1', // Orange (Dark)        
+            '255, 87, 34, 1', // Red(2)
+            '121, 85, 72, 1', // Brown
+            '158, 158, 158, 1', // Grey     
+            '96, 125, 139, 1' // Meroon       
+        );
+    
+    var html        = ''
+    ,   themeClr    = window.localStorage.getItem('themeColor');
+    
+    for( var i in themes ) {
+        var clr = 'rgba('+ themes[i] +')';
+        html += '<div class="cell '+ ( themeClr == clr ? 'active' : '' ) +'" data-color="'+ clr +'"><div style="background: '+ clr +'; ">&nbsp;</div></div>';
+    }
+    
+    $('#user-theme').html(html);
+    $('#user-theme .cell').on('click', function(){
+        var clr = $(this).attr('data-color') || "";
+        if( clr != '' ) {
+            $('#user-theme .cell.active').removeClass('active');
+            $(this).addClass('active');
+            $('#styles').html('<style type="text/css"> ._bg { background-color: '+ clr +' !important; } ._bc{ border-color: '+ clr +' !important; }</style>');
+            //window.localStorage.setItem('themeColor', clr);
+            socket.emit('set', {
+                type : 'options',
+                user: currentUser,
+                data: {
+                    themeClr: clr,
+                }
+            });
+            
+        }
+    });
+    //$('#user-theme .cell.active').trigger('click');
+    
     init();
     
 });
+
+
+function dialog($this, toClose){
+    
+    if( toClose ) {
+        $this.fadeOut('slow', function(){
+            $('.overlay').fadeOut(700);
+        });
+            
+    }else {
+        $('.overlay').fadeIn('slow', function(){
+            $this.fadeIn('slow');
+        });
+    }
+    
+}
+
+function getDayName(dayNo){
+    
+    switch(parseInt(dayNo)) {
+        case 0 : return 'Sun'; break;
+        case 1 : return 'Mon'; break;
+        case 2 : return 'Tue'; break;
+        case 3 : return 'Wed'; break;
+        case 4 : return 'Thu'; break;
+        case 5 : return 'Fri'; break;
+        case 6 : return 'Sat'; break;
+    }
+}
+
+
+function scrollTo($this) {
+    if( typeof $this != 'undefined' ) {
+        var o = $this.offset();
+        $('body, html').animate({
+            scrollTop: o.top
+        }, 1000);
+    }
+    
+}
+
+function getVarName(str) {
+    return str ? str.toString().replace(/[^\w\s]/gi, '').replace(' ', '_').toLowerCase() : '';
+}
+

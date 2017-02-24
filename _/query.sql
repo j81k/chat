@@ -1,4 +1,1 @@
-USE mk5ezo38qe9k5wyu;
-DROP TABLE `cht_chats`;
-DROP TABLE `cht_users`;
-DROP TABLE `cht_groups`;
+DELETE FROM cht_users WHERE id = "2"
